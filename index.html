@@ -1,0 +1,455 @@
+<!DOCTYPE html><html><head><base href="https://restaurantdashboard.ai/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Restaurant Dashboard - Análisis Detallado</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon@2.0.2/build/global/luxon.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0/dist/chartjs-adapter-luxon.min.js"></script>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #111827;
+    color: #e2e8f0;
+  }
+  .gradient-text {
+    background: linear-gradient(45deg, #6366f1, #8b5cf6, #d946ef);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .tab-content {
+    display: none;
+  }
+  .tab-content.active {
+    display: block;
+  }
+  .chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+  }
+</style>
+</head>
+<body class="bg-gray-900">
+  <nav class="bg-gray-800 p-4 sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold gradient-text">Restaurant Dashboard</h1>
+      <div>
+        <button class="tab-button px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 transition" data-tab="dashboard">Dashboard</button>
+        <button class="tab-button px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 transition" data-tab="menu">Menú</button>
+        <button class="tab-button px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 transition" data-tab="inventory">Inventario</button>
+        <button class="tab-button px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 transition" data-tab="sales">Ventas</button>
+        <button class="tab-button px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 transition" data-tab="staff">Personal</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container mx-auto mt-8 pb-16">
+    <div id="dashboard" class="tab-content active">
+      <h2 class="text-3xl font-semibold mb-6">Dashboard General</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-gray-800 p-6 rounded-lg">
+          <h3 class="text-xl font-semibold mb-2">Ventas Totales</h3>
+          <p class="text-4xl font-bold text-green-400">$24,580</p>
+          <p class="text-sm text-gray-400">+8% vs. semana anterior</p>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg">
+          <h3 class="text-xl font-semibold mb-2">Clientes Atendidos</h3>
+          <p class="text-4xl font-bold text-blue-400">1,245</p>
+          <p class="text-sm text-gray-400">+5% vs. semana anterior</p>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg">
+          <h3 class="text-xl font-semibold mb-2">Ticket Promedio</h3>
+          <p class="text-4xl font-bold text-purple-400">$19.74</p>
+          <p class="text-sm text-gray-400">+2% vs. semana anterior</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-gray-800 p-6 rounded-lg">
+          <h3 class="text-xl font-semibold mb-4">Ventas por Hora</h3>
+          <div class="chart-container">
+            <canvas id="hourlyRevenueChart"></canvas>
+          </div>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg">
+          <h3 class="text-xl font-semibold mb-4">Top 5 Platos</h3>
+          <div class="chart-container">
+            <canvas id="topDishesChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="menu" class="tab-content">
+      <h2 class="text-3xl font-semibold mb-6">Análisis de Menú</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-gray-800 p-6 rounded-lg">
+          <h3 class="text-xl font-semibold mb-4">Matriz de Ingeniería de Menú</h3>
+          <div class="chart-container">
+            <canvas id="menuEngineeringChart"></canvas>
+          </div>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg">
+          <h3 class="text-xl font-semibold mb-4">Tendencias de Precios</h3>
+          <div class="chart-container">
+            <canvas id="priceTrendChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-800 p-6 rounded-lg">
+        <h3 class="text-xl font-semibold mb-4">Rendimiento de Categorías</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-gray-700">
+            <thead>
+              <tr>
+                <th class="px-4 py-2 text-left">Categoría</th>
+                <th class="px-4 py-2 text-left">Ventas</th>
+                <th class="px-4 py-2 text-left">% del Total</th>
+                <th class="px-4 py-2 text-left">Margen Promedio</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="px-4 py-2">Entrantes</td>
+                <td class="px-4 py-2">$3,450</td>
+                <td class="px-4 py-2">14%</td>
+                <td class="px-4 py-2">68%</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-2">Platos Principales</td>
+                <td class="px-4 py-2">$12,800</td>
+                <td class="px-4 py-2">52%</td>
+                <td class="px-4 py-2">72%</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-2">Postres</td>
+                <td class="px-4 py-2">$2,980</td>
+                <td class="px-4 py-2">12%</td>
+                <td class="px-4 py-2">78%</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-2">Bebidas</td>
+                <td class="px-4 py-2">$5,350</td>
+                <td class="px-4 py-2">22%</td>
+                <td class="px-4 py-2">85%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="inventory" class="tab-content">
+      <h2 class="text-3xl font-semibold mb-6">Gestión de Inventario</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-gray-800 p-6 rounded-lg">
+          <h3 class="text-xl font-semibold mb-4">Rotación de Inventario</h3>
+          <div class="chart-container">
+            <canvas id="inventoryTurnoverChart"></canvas>
+          </div>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg">
+          <h3 class="text-xl font-semibold mb-4">Pérdida por Merma</h3>
+          <div class="chart-container">
+            <canvas id="wastageChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-800 p-6 rounded-lg">
+        <h3 class="text-xl font-semibold mb-4">Alertas de Inventario</h3>
+        <ul class="space-y-2">
+          <li class="flex items-center text-red-400">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            Stock bajo de carne de res (2 días restantes)
+          </li>
+          <li class="flex items-center text-yellow-400">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            Stock medio de vino tinto (7 días restantes)
+          </li>
+          <li class="flex items-center text-green-400">
+            <i class="fas fa-check-circle mr-2"></i>
+            Reabastecimiento exitoso de verduras frescas
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="sales" class="tab-content">
+      <h2 class="text-3xl font-semibold mb-6">Análisis de Ventas</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-gray-800 p-6 rounded-lg">
+          <h3 class="text-xl font-semibold mb-4">Ventas por Categoría</h3>
+          <div class="chart-container">
+            <canvas id="salesByCategoryChart"></canvas>
+          </div>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg">
+          <h3 class="text-xl font-semibold mb-4">Tendencia de Ventas Mensuales</h3>
+          <div class="chart-container">
+            <canvas id="monthlySalesTrendChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-800 p-6 rounded-lg">
+        <h3 class="text-xl font-semibold mb-4">Análisis de Ventas Cruzadas</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-gray-700">
+            <thead>
+              <tr>
+                <th class="px-4 py-2 text-left">Producto Principal</th>
+                <th class="px-4 py-2 text-left">Producto Complementario</th>
+                <th class="px-4 py-2 text-left">% de Coincidencia</th>
+                <th class="px-4 py-2 text-left">Incremento en Ventas</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="px-4 py-2">Filete de res</td>
+                <td class="px-4 py-2">Vino tinto</td>
+                <td class="px-4 py-2">78%</td>
+                <td class="px-4 py-2">+15%</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-2">Ensalada César</td>
+                <td class="px-4 py-2">Pechuga de pollo</td>
+                <td class="px-4 py-2">65%</td>
+                <td class="px-4 py-2">+12%</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-2">Pasta Alfredo</td>
+                <td class="px-4 py-2">Pan de ajo</td>
+                <td class="px-4 py-2">82%</td>
+                <td class="px-4 py-2">+18%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="staff" class="tab-content">
+      <h2 class="text-3xl font-semibold mb-6">Gestión de Personal</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-gray-800 p-6 rounded-lg">
+          <h3 class="text-xl font-semibold mb-4">Desempeño de Meseros</h3>
+          <div class="chart-container">
+            <canvas id="waiterPerformanceChart"></canvas>
+          </div>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg">
+          <h3 class="text-xl font-semibold mb-4">Eficiencia de Cocina</h3>
+          <div class="chart-container">
+            <canvas id="kitchenEfficiencyChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-800 p-6 rounded-lg">
+        <h3 class="text-xl font-semibold mb-4">Programación de Personal</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-gray-700">
+            <thead>
+              <tr>
+                <th class="px-4 py-2 text-left">Empleado</th>
+                <th class="px-4 py-2 text-left">Puesto</th>
+                <th class="px-4 py-2 text-left">Horas Programadas</th>
+                <th class="px-4 py-2 text-left">Desempeño</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="px-4 py-2">María García</td>
+                <td class="px-4 py-2">Mesera</td>
+                <td class="px-4 py-2">32</td>
+                <td class="px-4 py-2">
+                  <div class="w-full bg-gray-600 rounded-full h-2.5">
+                    <div class="bg-green-500 h-2.5 rounded-full" style="width: 95%"></div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="px-4 py-2">Juan Pérez</td>
+                <td class="px-4 py-2">Cocinero</td>
+                <td class="px-4 py-2">40</td>
+                <td class="px-4 py-2">
+                  <div class="w-full bg-gray-600 rounded-full h-2.5">
+                    <div class="bg-yellow-500 h-2.5 rounded-full" style="width: 80%"></div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="px-4 py-2">Ana Martínez</td>
+                <td class="px-4 py-2">Bartender</td>
+                <td class="px-4 py-2">25</td>
+                <td class="px-4 py-2">
+                  <div class="w-full bg-gray-600 rounded-full h-2.5">
+                    <div class="bg-blue-500 h-2.5 rounded-full" style="width: 88%"></div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Función para cambiar entre pestañas
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    // Event listeners para los botones de las pestañas
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', (e) => {
+        switchTab(e.target.dataset.tab);
+      });
+    });
+
+    // Función para crear gráficos
+    function createChart(id, type, labels, data, options = {}) {
+      const ctx = document.getElementById(id).getContext('2d');
+      return new Chart(ctx, {
+        type: type,
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Datos',
+            data: data,
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.6)',
+              'rgba(54, 162, 235, 0.6)',
+              'rgba(255, 206, 86, 0.6)',
+              'rgba(75, 192, 192, 0.6)',
+              'rgba(153, 102, 255, 0.6)',
+            ],
+            borderColor: 'rgba(255, 255, 255, 0.8)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          ...options
+        }
+      });
+    }
+
+    // Crear gráficos con datos de ejemplo
+    createChart('hourlyRevenueChart', 'line', ['10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'], [500, 1200, 1800, 1500, 2000, 2500, 2000], {
+      plugins: {
+        title: {
+          display: true,
+          text: 'Ventas por Hora'
+        }
+      }
+    });
+    
+    createChart('topDishesChart', 'bar', ['Filete', 'Pasta', 'Ensalada', 'Sopa', 'Postre'], [120, 90, 80, 70, 60], {
+      plugins: {
+        title: {
+          display: true,
+          text: 'Top 5 Platos Más Vendidos'
+        }
+      }
+    });
+    
+    createChart('menuEngineeringChart', 'scatter', ['Popularidad', 'Rentabilidad'], [
+      {x: 4, y: 5, r: 10},
+      {x: 2, y: 3, r: 8},
+      {x: 3, y: 4, r: 12},
+      {x: 5, y: 2, r: 15},
+      {x: 1, y: 1, r: 6}
+    ], {
+      plugins: {
+        title: {
+          display: true,
+          text: 'Matriz de Ingeniería de Menú'
+        }
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Popularidad'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Rentabilidad'
+          }
+        }
+      }
+    });
+    
+    createChart('priceTrendChart', 'line', ['Ene', 'Feb', 'Mar', 'Abr', 'May'], [15, 16, 15.5, 17, 18], {
+      plugins: {
+        title: {
+          display: true,
+          text: 'Tendencia de Precios'
+        }
+      }
+    });
+    
+    createChart('inventoryTurnoverChart', 'bar', ['Carne', 'Pescado', 'Verduras', 'Lácteos', 'Bebidas'], [5, 4, 6, 3, 7], {
+      plugins: {
+        title: {
+          display: true,
+          text: 'Rotación de Inventario'
+        }
+      }
+    });
+    
+    createChart('wastageChart', 'pie', ['Desperdicio', 'Utilizado'], [15, 85], {
+      plugins: {
+        title: {
+          display: true,
+          text: 'Pérdida por Merma'
+        }
+      }
+    });
+    
+    createChart('salesByCategoryChart', 'doughnut', ['Entrantes', 'Platos principales', 'Postres', 'Bebidas'], [3000, 8000, 2500, 4000], {
+      plugins: {
+        title: {
+          display: true,
+          text: 'Ventas por Categoría'
+        }
+      }
+    });
+    
+    createChart('monthlySalesTrendChart', 'line', ['Ene', 'Feb', 'Mar', 'Abr', 'May'], [50000, 55000, 48000, 60000, 65000], {
+      plugins: {
+        title: {
+          display: true,
+          text: 'Tendencia de Ventas Mensuales'
+        }
+      }
+    });
+    
+    createChart('waiterPerformanceChart', 'bar', ['María', 'Juan', 'Ana', 'Carlos', 'Laura'], [95, 88, 92, 85, 90], {
+      plugins: {
+        title: {
+          display: true,
+          text: 'Desempeño de Meseros'
+        }
+      }
+    });
+    
+    createChart('kitchenEfficiencyChart', 'line', ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'], [85, 88, 90, 87, 92, 95, 93], {
+      plugins: {
+        title: {
+          display: true,
+          text: 'Eficiencia de Cocina'
+        }
+      }
+    });
+  </script>
+
+</body></html>
